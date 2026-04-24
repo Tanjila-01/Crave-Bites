@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Landing from './pages/Landing';
 import Payment from './pages/Payment';
 import Orders from './pages/Orders';
+import { useCart } from './hooks/useCart';
 import './App.css';
 
 const API_URL = 'http://localhost:8000/api';
@@ -22,9 +23,9 @@ function MainApp() {
   const { user, logoutUser } = useContext(AuthContext);
   const [restaurants, setRestaurants] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { cart, cartTotal, addToCart, updateQuantity, fetchCart } = useCart(user);
   
   const navigate = useNavigate();
 
@@ -57,33 +58,10 @@ function MainApp() {
 
   // Sync cart emptying from Payment
   useEffect(() => {
-      const handleClearCart = () => setCart([]);
+      const handleClearCart = () => fetchCart(); // Re-fetch cart when cleared from backend
       window.addEventListener('clearCart', handleClearCart);
       return () => window.removeEventListener('clearCart', handleClearCart);
-  }, []);
-
-  const addToCart = (item) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
-      if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
-      }
-      return [...prev, { ...item, quantity: 1 }];
-    });
-    // Removed setIsCartOpen(true) to keep adding silent like real swiggy
-  };
-
-  const updateQuantity = (id, delta) => {
-    setCart(prev => prev.map(i => {
-      if (i.id === id) {
-        const newQ = i.quantity + delta;
-        return newQ > 0 ? { ...i, quantity: newQ } : null;
-      }
-      return i;
-    }).filter(Boolean));
-  };
-
-  const cartTotal = cart.reduce((sum, item) => sum + (parseFloat(item.price) * item.quantity), 0);
+  }, [fetchCart]);
 
   const handleCheckoutClick = () => {
       setIsCartOpen(false);

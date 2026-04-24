@@ -8,7 +8,10 @@ class Category(models.Model):
         return self.name
 
 class Restaurant(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, db_index=True)
+    description = models.TextField(blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
     rating = models.FloatField(default=0.0)
     delivery_time = models.CharField(max_length=50, help_text="e.g., '30-40 min'")
     min_order = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
@@ -22,10 +25,11 @@ class Restaurant(models.Model):
 
 class MenuItem(models.Model):
     restaurant = models.ForeignKey(Restaurant, related_name='menu_items', on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, db_index=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=6, decimal_places=2)
     is_veg = models.BooleanField(default=True)
+    is_available = models.BooleanField(default=True)
     image_url = models.URLField(blank=True, null=True)
     category = models.ForeignKey(Category, related_name='items', on_delete=models.SET_NULL, null=True, blank=True)
 

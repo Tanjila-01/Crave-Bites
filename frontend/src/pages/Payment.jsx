@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
-import axios from 'axios';
+import { api } from '../services/api';
 import { CreditCard, Smartphone, CheckCircle } from 'lucide-react';
 
 function Payment() {
@@ -30,32 +30,60 @@ function Payment() {
         e.preventDefault();
         setIsProcessing(true);
         
-        // Simulate network delay
-        setTimeout(async () => {
-            try {
-                const payload = {
-                    user_name: user?.username || 'Guest',
-                    user_address: "Default Delivery Address",
-                    items: cart.map(item => ({
-                        menu_item_id: item.id,
-                        quantity: item.quantity,
-                        price: item.price
-                    }))
-                };
-                await axios.post('http://localhost:8000/api/orders/place_order/', payload, {
-                    headers: { 'Authorization': `Bearer ${authTokens?.access}` }
-                });
-                setIsProcessing(false);
+        try {
+            // 1. Convert Cart into an Order natively from backend
+            const { data: order } = await api.post('/orders/orders/place_order/', {
+                user_name: user?.username || 'Guest',
+                user_address: "Default Delivery Address"
+            });
+            
+            if (method === 'cod') {
                 setSuccess(true);
                 window.dispatchEvent(new Event('clearCart'));
-                
-                // Allow user to see success checkmark, then redirect
                 setTimeout(() => navigate('/home'), 3000);
-            } catch (err) {
-                setIsProcessing(false);
-                alert("Payment Failed - Server Error");
+                return;
             }
-        }, 1500);
+
+            // 2. Initialize Razorpay Payment
+            const { data: rzpay } = await api.post('/orders/payment/create/', { order_id: order.id });
+
+            // 3. Open Razorpay Overlay
+            const options = {
+                key: rzpay.key_id,
+                amount: rzpay.amount,
+                currency: rzpay.currency,
+                order_id: rzpay.razorpay_order_id,
+                name: "CraveBites",
+                description: "Food Order Payment",
+                handler: async function (response) {
+                    try {
+                        // 4. Verify Payment securely
+                        await api.post('/orders/payment/verify/', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        });
+                        setSuccess(true);
+                        window.dispatchEvent(new Event('clearCart'));
+                        setTimeout(() => navigate('/home'), 3000);
+                    } catch (verifyError) {
+                        alert(verifyError.response?.data?.error || "Payment Verification Failed");
+                        setIsProcessing(false);
+                    }
+                },
+                modal: {
+                    ondismiss: function() {
+                        setIsProcessing(false);
+                    }
+                }
+            };
+            const rzp = new window.Razorpay(options);
+            rzp.open();
+            
+        } catch (err) {
+            setIsProcessing(false);
+            alert(err.response?.data?.error || "Transaction Initialization Failed");
+        }
     };
 
     if (success) {
