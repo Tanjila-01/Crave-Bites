@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import axios from 'axios';
+import { api } from '../services/api';
 import { Package } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 
@@ -8,13 +8,15 @@ function Orders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const handleImageError = (e) => {
+        e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80';
+    };
+
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/api/orders/', {
-                    headers: { 'Authorization': `Bearer ${authTokens?.access}` }
-                });
-                setOrders(response.data);
+                const response = await api.get('/orders/');
+                setOrders(response.data.results);
             } catch (error) {
                 console.error("Failed to fetch orders", error);
             } finally {
@@ -56,18 +58,25 @@ function Orders() {
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px' }}>
-                                    {order.items.map(item => (
+                                    {order.items.map(item => {
+                                        const imgUrl = item.menu_item_detail?.image_url;
+                                        const optimizedUrl = imgUrl && imgUrl.includes('unsplash.com') && !imgUrl.includes('?') 
+                                            ? `${imgUrl}?w=200&q=80&auto=format` 
+                                            : (imgUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80");
+                                        return (
                                         <div key={item.id} style={{ minWidth: '120px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                             <div style={{ width: '100%', height: '80px', borderRadius: '8px', background: '#FAFAFA', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                                 <img 
-                                                    src={item.menu_item_detail?.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80"} 
+                                                    src={optimizedUrl} 
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                                                     alt={item.menu_item_detail?.name}
+                                                    loading="lazy"
+                                                    onError={handleImageError}
                                                 />
                                             </div>
                                             <p style={{ fontSize: '14px', fontWeight: '600' }}><span style={{ color: 'var(--primary)' }}>{item.quantity}x</span> {item.menu_item_detail?.name}</p>
                                         </div>
-                                    ))}
+                                    )})}
                                 </div>
                             </div>
                         ))}

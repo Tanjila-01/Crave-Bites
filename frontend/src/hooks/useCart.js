@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
+import toast from 'react-hot-toast';
 
 export const useCart = (user) => {
     const [cartData, setCartData] = useState({ items: [], total_cart_amount: 0 });
@@ -10,7 +11,7 @@ export const useCart = (user) => {
             return;
         }
         try {
-            const { data } = await api.get('/orders/cart/');
+            const { data } = await api.get('/cart/');
             setCartData(data);
         } catch (e) {
             console.error('Failed to fetch cart', e);
@@ -18,9 +19,15 @@ export const useCart = (user) => {
     }, [user]);
 
     const addToCart = async (item) => {
-        if (!user) return alert("Please login first!");
-        await api.post('/orders/cart/', { menu_item_id: item.id, quantity: 1 });
-        fetchCart();
+        if (!user) return toast.error("Please login first!");
+
+        try {
+            await api.post('/cart/add_item/', { menu_item_id: item.id, quantity: 1 });
+            toast.success("Item added to cart!");
+            await fetchCart();
+        } catch (e) {
+            toast.error(e.response?.data?.error || "Failed to add item to cart");
+        }
     };
 
     const updateQuantity = async (menu_item_id, delta) => {
@@ -30,16 +37,27 @@ export const useCart = (user) => {
         
         const newQuantity = existingItem.quantity + delta;
         
-        if (newQuantity <= 0) {
-            await api.delete(`/orders/cart/?menu_item_id=${menu_item_id}`);
-        } else {
-            await api.put('/orders/cart/', { menu_item_id, quantity: newQuantity });
+        try {
+            if (newQuantity <= 0) {
+                await api.post('/cart/remove_item/', { cart_item_id: existingItem.id });
+            } else {
+                await api.post('/cart/update_item/', { cart_item_id: existingItem.id, quantity: newQuantity });
+            }
+            await fetchCart();
+        } catch (e) {
+            toast.error(e.response?.data?.error || "Failed to update item quantity");
         }
-        fetchCart();
     };
 
     useEffect(() => { fetchCart(); }, [fetchCart]);
     
+    // Listen for cart clearing events (like after successful payment)
+    useEffect(() => {
+        const handleClearCart = () => fetchCart();
+        window.addEventListener('clearCart', handleClearCart);
+        return () => window.removeEventListener('clearCart', handleClearCart);
+    }, [fetchCart]);
+
     // Map backend response so the UI code doesn't break
     const cartItems = (cartData.items || []).map(i => ({
         ...i.menu_item_detail,
@@ -47,5 +65,5 @@ export const useCart = (user) => {
         quantity: i.quantity
     }));
 
-    return { cart: cartItems, cartTotal: cartData.total_cart_amount, addToCart, updateQuantity, fetchCart };
+    return { cart: cartItems, cartTotal: cartData.total_amount || 0, addToCart, updateQuantity, fetchCart };
 };

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import { api } from '../services/api';
 import { CreditCard, Smartphone, CheckCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 function Payment() {
     const { user, authTokens } = useContext(AuthContext);
@@ -32,7 +33,7 @@ function Payment() {
         
         try {
             // 1. Convert Cart into an Order natively from backend
-            const { data: order } = await api.post('/orders/orders/place_order/', {
+            const { data: order } = await api.post('/orders/place_order/', {
                 user_name: user?.username || 'Guest',
                 user_address: "Default Delivery Address"
             });
@@ -45,7 +46,20 @@ function Payment() {
             }
 
             // 2. Initialize Razorpay Payment
-            const { data: rzpay } = await api.post('/orders/payment/create/', { order_id: order.id });
+            const { data: rzpay } = await api.post('/payment/create/', { order_id: order.id });
+
+            if (rzpay.key_id === 'fake_key_id') {
+                // Mock verification for dummy keys
+                await api.post('/payment/verify/', {
+                    razorpay_order_id: rzpay.razorpay_order_id,
+                    razorpay_payment_id: "fake_payment_id",
+                    razorpay_signature: "fake_signature"
+                });
+                setSuccess(true);
+                window.dispatchEvent(new Event('clearCart'));
+                setTimeout(() => navigate('/home'), 3000);
+                return;
+            }
 
             // 3. Open Razorpay Overlay
             const options = {
@@ -58,7 +72,7 @@ function Payment() {
                 handler: async function (response) {
                     try {
                         // 4. Verify Payment securely
-                        await api.post('/orders/payment/verify/', {
+                        await api.post('/payment/verify/', {
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature
@@ -67,7 +81,7 @@ function Payment() {
                         window.dispatchEvent(new Event('clearCart'));
                         setTimeout(() => navigate('/home'), 3000);
                     } catch (verifyError) {
-                        alert(verifyError.response?.data?.error || "Payment Verification Failed");
+                        toast.error(verifyError.response?.data?.error || "Payment Verification Failed");
                         setIsProcessing(false);
                     }
                 },
@@ -82,7 +96,7 @@ function Payment() {
             
         } catch (err) {
             setIsProcessing(false);
-            alert(err.response?.data?.error || "Transaction Initialization Failed");
+            toast.error(err.response?.data?.error || "Transaction Initialization Failed");
         }
     };
 

@@ -1,12 +1,38 @@
 import { useState } from 'react';
 import { ArrowRight, Star, Clock, Plus, Minus } from 'lucide-react';
 
-function Home({ categories, restaurants, addToCart, cart, updateQuantity }) {
+function Home({ categories, restaurants, addToCart, cart, updateQuantity, isLoadingData }) {
     const [selectedCategory, setSelectedCategory] = useState(null);
 
     const filteredRestaurants = selectedCategory 
         ? restaurants.filter(r => r.menu_items && r.menu_items.some(item => item.category === selectedCategory))
         : restaurants;
+
+    const handleImageError = (e) => {
+        e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80';
+    };
+
+    const getOptimizedUrl = (url, width=500) => {
+        if (!url) return `https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=${width}&q=80`;
+        if (url.includes('unsplash.com') && !url.includes('?')) {
+            return `${url}?w=${width}&q=80&auto=format`;
+        }
+        return url;
+    };
+
+    if (isLoadingData) {
+        return (
+            <div className="container" style={{ padding: '64px 24px' }}>
+                <div style={{ height: '400px', background: '#f0f0f0', borderRadius: '16px', marginBottom: '40px', animation: 'pulse 1.5s infinite' }}></div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '32px' }}>
+                    {[1, 2, 3, 4, 5, 6].map(i => (
+                        <div key={i} style={{ height: '300px', background: '#f0f0f0', borderRadius: '16px', animation: 'pulse 1.5s infinite' }}></div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div>
             {/* Hero Section */}
@@ -26,7 +52,7 @@ function Home({ categories, restaurants, addToCart, cart, updateQuantity }) {
                     </div>
                 </div>
                 <div className="hero-image animate-float">
-                    <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80" alt="Delicious Food" />
+                    <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80" alt="Delicious Food" loading="lazy" onError={handleImageError} />
                 </div>
                 </div>
             </section>
@@ -43,7 +69,7 @@ function Home({ categories, restaurants, addToCart, cart, updateQuantity }) {
                         style={{ cursor: 'pointer', opacity: selectedCategory && selectedCategory !== cat.id ? 0.5 : 1, transform: selectedCategory === cat.id ? 'scale(1.05)' : 'none', transition: 'all 0.3s ease' }}
                     >
                     <div className="category-img-wrapper" style={{ border: selectedCategory === cat.id ? '4px solid var(--primary)' : 'none' }}>
-                        <img src={cat.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80"} alt={cat.name} />
+                        <img src={getOptimizedUrl(cat.image_url)} alt={cat.name} loading="lazy" onError={handleImageError} />
                     </div>
                     <span className="category-name" style={{ color: selectedCategory === cat.id ? 'var(--primary)' : 'var(--text-main)', fontWeight: selectedCategory === cat.id ? '800' : '600' }}>{cat.name}</span>
                     </div>
@@ -76,7 +102,7 @@ function Home({ categories, restaurants, addToCart, cart, updateQuantity }) {
                     return (
                     <div className="restaurant-card" key={rest.id}>
                     <div className="restaurant-image">
-                        <img src={rest.image_url || "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80"} alt={rest.name} />
+                        <img src={getOptimizedUrl(rest.image_url)} alt={rest.name} loading="lazy" onError={handleImageError} />
                         <div className="restaurant-badge">
                         <Star size={14} color="var(--primary)" fill="var(--primary)" /> {rest.rating}
                         </div>
@@ -103,7 +129,7 @@ function Home({ categories, restaurants, addToCart, cart, updateQuantity }) {
                                 return (
                                 <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                                     <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, background: '#FAFAFA' }}>
-                                        <img src={item.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&q=80"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={item.name} />
+                                        <img src={getOptimizedUrl(item.image_url, 200)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt={item.name} loading="lazy" onError={handleImageError} />
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
                                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
