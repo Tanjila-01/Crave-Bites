@@ -1,5 +1,5 @@
 import logging
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
@@ -27,6 +27,7 @@ class RestaurantViewSet(viewsets.ModelViewSet):
     queryset = Restaurant.objects.prefetch_related(
         Prefetch('menu_items', queryset=MenuItem.objects.select_related('restaurant', 'category'))
     ).filter(is_open=True)
+    permission_classes = [permissions.AllowAny]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['is_open']
@@ -91,6 +92,7 @@ class MenuItemViewSet(viewsets.ModelViewSet):
     """ViewSet for MenuItem model with filtering and search"""
     queryset = MenuItem.objects.select_related('restaurant', 'category').filter(is_available=True)
     serializer_class = MenuItemSerializer
+    permission_classes = [permissions.AllowAny]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['restaurant', 'category', 'is_veg', 'is_available']
@@ -158,6 +160,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """ViewSet for Category model"""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [permissions.AllowAny]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name']
