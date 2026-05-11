@@ -1,17 +1,72 @@
 # 🍔 CraveBites
 
-A modern full-stack food delivery platform built with **Django REST Framework (backend)** and **React (Vite frontend)**, designed with a secure, scalable, and production-oriented architecture.
+A Swiggy/Zomato-inspired full-stack food delivery platform built with **React (Vite frontend)** and **Django REST Framework (backend)**. Designed with a secure, modular, and responsive architecture, emphasizing clean UI/UX and robust data handling.
 
 ---
 
-## 🚀 Project Highlights
+## 🚀 Project Overview
 
-* 🔐 Secure HttpOnly cookie-based JWT authentication
-* 🛒 Server-side cart as single source of truth
-* ⚡ Optimized database queries (select_related / prefetch_related)
-* 💳 End-to-end checkout pipeline (test payment flow)
-* 🔄 Seamless token refresh using Axios interceptors
-* 🧱 Decoupled frontend-backend architecture
+CraveBites is a feature-rich web application that simulates a complete food delivery lifecycle—from restaurant discovery and menu browsing to secure cart management, location-based filtering, and order tracking. It implements robust patterns such as HttpOnly JWT authentication, server-side cart validation, defensive rendering, and a reliable checkout flow to ensure a professional and bug-free user experience.
+
+---
+
+## ✨ Features
+
+**Authentication & User Management**
+- Secure JWT Authentication (HttpOnly cookies, no localStorage)
+- Login/Register/Logout flows
+- Support for both Email and Username login
+- Comprehensive User Profile dashboard
+
+**Location & Discovery**
+- GPS-based location detection with Reverse Geocoding
+- City normalization (maps specific coordinates/localities to normalized service areas)
+- Location-based restaurant filtering
+- Global Search (searches restaurants, cuisines, and specific dishes)
+- Multi-filter system (Pure Veg, Fast Delivery < 30 mins, Rating 4.0+)
+- Restaurant detail pages with menu rendering
+
+**Shopping & Cart**
+- Dynamic server-side cart with a sliding frontend sidebar
+- Quantity controls (add/remove) with automatic backend synchronization
+- Smooth add-to-cart animations and toast notifications
+
+**Checkout & Addresses**
+- Saved delivery addresses management (CRUD operations)
+- GPS-assisted address autofill via a professional modal
+- End-to-end checkout flow
+- Dynamic tax & delivery fee calculations
+
+**Orders & Tracking**
+- Comprehensive order history view
+- Simulated order lifecycle (progresses from Confirming → Preparing → Out for Delivery → Delivered based on timestamp)
+- Zomato-style horizontal Order Tracking UI
+- Professional formatted order IDs (e.g., `CRV-2026-0010`)
+- Instant "Reorder" functionality
+
+**UI/UX Quality**
+- Swiggy/Zomato-inspired premium, responsive layout
+- Skeleton loaders for seamless data fetching
+- Defensive rendering (optional chaining, safe array checks) to prevent runtime crashes
+- Reusable component architecture (modals, dropdowns, cards)
+
+---
+
+## 💻 Tech Stack
+
+### Frontend
+* React (Vite)
+* React Router DOM
+* Context API (Auth, Location)
+* Axios (interceptors + CSRF handling)
+* Lucide React (Icons)
+* Custom Vanilla CSS (Modern CSS variables, Flexbox/Grid)
+
+### Backend
+* Django
+* Django REST Framework (DRF)
+* SimpleJWT (Customized for cookie-based auth)
+* SQLite (Easily swappable to PostgreSQL)
 
 ---
 
@@ -19,184 +74,85 @@ A modern full-stack food delivery platform built with **Django REST Framework (b
 
 CraveBites follows a decoupled client-server model:
 
-### Frontend (React SPA)
-
-* Handles UI rendering and user interactions only
-* State managed via Context API and custom hooks
-* Communicates with backend via REST APIs
-* Does NOT compute pricing or business logic
-
-### Backend (Django REST Framework)
-
-* Core business logic and authentication layer
-* Maintains cart, orders, and pricing calculations
-* Enforces CSRF protection and JWT authentication
-* Acts as the single source of truth for all data
+* **Frontend (React SPA):** Focuses heavily on a premium user experience. Utilizes a highly **reusable component architecture** (like the Address Modal, Cart Overlay, and Profile Dropdowns) to keep the codebase DRY. Employs strict **defensive rendering** and error handling to ensure the UI never crashes on missing data or undefined states.
+* **Backend (Django REST Framework):** Acts as the strict single source of truth. Validates all cart operations, pricing calculations, and enforces CSRF/JWT protection. 
+* **Location Normalization:** Uses reverse geocoding to fetch raw location data, which is then normalized into standard city names (e.g., "Bangalore") to accurately query the backend for available restaurants in that specific region.
 
 ---
 
-## ✨ Features
+## ⚙️ Installation & Setup
 
-### 🔐 Authentication & Security
-
-* JWT stored in HttpOnly, Secure cookies
-* CSRF protection for all state-changing requests
-* Automatic token refresh via API interceptors
-* XSS-resistant token handling (no localStorage usage)
-
-### 🛒 Cart & Orders
-
-* Persistent server-side cart linked to user profile
-* Backend validates all cart operations
-* Atomic transactions ensure safe order creation
-* Full order history tracking with status updates
-
-### 💳 Checkout Flow
-
-* End-to-end simulated payment system
-* Supports Card / UPI / COD (test mode only)
-* Backend recalculates totals securely before order creation
-* Cart cleared only after successful order placement
-
-### ⚡ Performance Optimizations
-
-* Optimized ORM queries to prevent N+1 problems
-* Image compression via URL transformation
-* Efficient API response structures
-* Pre-seeded database for fast development setup
-
----
-
-## 💻 Tech Stack
-
-### Frontend
-
-* React (Vite)
-* React Router DOM
-* Axios (interceptors + CSRF handling)
-* Context API
-
-### Backend
-
-* Django
-* Django REST Framework
-* SimpleJWT (cookie-based implementation)
-* SQLite / PostgreSQL
-
----
-
-## 📂 Folder Structure
-
-### Backend
-
-```
-backend/
-├── core/           # Settings, URLs, config
-├── users/          # Authentication & user profiles
-├── restaurants/    # Restaurants & menu items
-├── orders/         # Cart, orders, payment logic
-```
-
-### Frontend
-
-```
-frontend/
-├── src/
-│   ├── assets/
-│   ├── context/     # Auth context
-│   ├── hooks/       # Custom hooks (cart, auth)
-│   ├── pages/       # UI pages
-│   ├── services/    # Axios API layer
-```
-
----
-
-## 🔄 User Flow
-
-1. User logs in → backend sets HttpOnly cookies
-2. Frontend fetches user via `/api/auth/me/`
-3. User browses restaurants and menu items
-4. Items added to server-side cart
-5. Backend validates and stores cart state
-6. Checkout triggers order creation (atomic transaction)
-7. Payment simulated and order marked as paid
-8. Cart is cleared and order history updated
-
----
-
-## 🔌 API Endpoints
-
-| Method | Endpoint                 | Description      | Auth |
-| ------ | ------------------------ | ---------------- | ---- |
-| POST   | /api/auth/token/         | Login            | ❌    |
-| POST   | /api/auth/token/refresh/ | Refresh token    | ❌    |
-| GET    | /api/auth/me/            | User profile     | ✅    |
-| GET    | /api/restaurants/        | List restaurants | ✅    |
-| POST   | /api/cart/add_item/      | Add item to cart | ✅    |
-| POST   | /api/orders/place_order/ | Place order      | ✅    |
-| POST   | /api/payment/create/     | Initiate payment | ✅    |
-
----
-
-## ⚙️ Setup Instructions
-
-### Backend
+### 1. Backend Setup
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Windows: venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
 pip install -r requirements.txt
+
+# Run migrations
+python manage.py makemigrations
 python manage.py migrate
+
+# Seed database with realistic restaurants, categories, and food items
 python seed_db.py
+
+# Start the server
 python manage.py runserver
 ```
 
-### Frontend
+### 2. Frontend Setup
 
 ```bash
 cd frontend
 npm install
+
+# Start the Vite development server
 npm run dev
 ```
 
----
-
-## 🌐 Environment Variables
-
-```
-SECRET_KEY=your-secret
-DEBUG=True
-USE_POSTGRES=False
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
+The application will be typically available at `http://localhost:5173/` or `http://localhost:5174/` (as specified by Vite).
 
 ---
 
-## 🚀 Deployment Notes
+## 🔌 API Overview
 
-* Set `DEBUG=False` in production
-* Configure `CORS_ALLOWED_ORIGINS` properly
-* Enable PostgreSQL for production use
-* Use HTTPS for secure cookie transmission
-* Ensure CSRF_TRUSTED_ORIGINS includes frontend domain
+| Method | Endpoint                 | Description      | Auth |
+| ------ | ------------------------ | ---------------- | ---- |
+| POST   | `/api/auth/token/`       | Login            | ❌    |
+| POST   | `/api/auth/token/refresh/`| Refresh token   | ❌    |
+| GET    | `/api/auth/me/`          | User profile     | ✅    |
+| PUT    | `/api/auth/me/update/`   | Update profile   | ✅    |
+| GET    | `/api/restaurants/`      | List restaurants | ✅    |
+| GET    | `/api/categories/`       | List categories  | ✅    |
+| POST   | `/api/cart/add_item/`    | Add item to cart | ✅    |
+| POST   | `/api/orders/place_order/`| Place order     | ✅    |
+| GET    | `/api/orders/`           | Order history    | ✅    |
 
 ---
 
-## 📌 Summary
+## 📸 Screenshots Placeholder
 
-CraveBites is a production-oriented full-stack food delivery system emphasizing:
+*(Replace these placeholders with actual project screenshots)*
 
-* Security-first authentication design
-* Backend-driven business logic
-* Scalable REST API architecture
-* Optimized database performance
+- `[Placeholder: Homepage & Hero Section]`
+- `[Placeholder: Restaurant Search & Filters]`
+- `[Placeholder: Dynamic Cart Sidebar]`
+- `[Placeholder: Professional Checkout & Address Modal]`
+- `[Placeholder: Order History & Tracking UI]`
 
 ---
 
 ## 📎 Future Improvements
 
-* Real payment gateway integration (Stripe/Razorpay live mode)
-* WebSockets for live order tracking
-* Admin dashboard for restaurant owners
-* Redis caching layer for performance boost
+- Add light/dark mode toggle.
+- Integrate a live payment gateway (Stripe/Razorpay test mode).
+- Implement infinite scrolling for restaurant listings.
+- Add user reviews and ratings for past orders.
+
+---
+
+## 👤 Author
+
+Developed as a demonstration of thoughtful full-stack engineering.
