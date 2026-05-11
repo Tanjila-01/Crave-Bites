@@ -1,87 +1,11 @@
 import os
 import django
+import random
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
 from restaurants.models import Category, Restaurant, MenuItem
-
-
-# ✅ IMAGE MAP (ALL UNIQUE)
-IMAGE_MAP = {
-    "Margherita Pizza": "https://images.unsplash.com/photo-1601924928586-6d1b3fbbf9f0",
-    "Pepperoni Pizza": "https://images.unsplash.com/photo-1594007654729-407eedc4be65",
-    "Garlic Bread": "https://images.unsplash.com/photo-1619535860434-5c0b8b8b7a3d",
-    "Choco Lava Cake": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c",
-    "Diet Coke": "https://images.unsplash.com/photo-1580910051074-3eb694886505",
-
-    "Whopper Burger": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd",
-    "Veggie Burger": "https://images.unsplash.com/photo-1550547660-d9450f859349",
-    "French Fries": "https://images.unsplash.com/photo-1576107232684-1279f390859f",
-    "Chicken Nuggets": "https://images.unsplash.com/photo-1606756790138-261d2b21cd59",
-    "Chocolate Shake": "https://images.unsplash.com/photo-1577805947697-89e18249d767",
-
-    "Butter Chicken": "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398",
-    "Paneer Tikka Masala": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7",
-    "Garlic Naan": "https://images.unsplash.com/photo-1601050690597-df0568f70950",
-    "Samosa": "https://images.unsplash.com/photo-1601050690117-94f5f6fa0e8b",
-    "Gulab Jamun": "https://images.unsplash.com/photo-1633945274405-b6c8069047b0",
-
-    "Kung Pao Chicken": "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d",
-    "Spring Rolls": "https://images.unsplash.com/photo-1601315488950-3b5047998b38",
-    "Fried Rice": "https://images.unsplash.com/photo-1603133872878-684f208fb84b",
-    "Sweet and Sour Pork": "https://images.unsplash.com/photo-1625944525903-b2f1c0f4b1d1",
-    "Wonton Soup": "https://images.unsplash.com/photo-1604908812875-8b8d5b0c1eaa",
-
-    "Death by Chocolate": "https://images.unsplash.com/photo-1563805042-7684c019e1cb",
-    "Vanilla Sundae": "https://images.unsplash.com/photo-1570197788417-0e82375c9371",
-    "Strawberry Ice Cream": "https://images.unsplash.com/photo-1505253210343-0c7c9c8e1b1f",
-    "Cheesecake": "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
-    "Coffee": "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
-
-    "Masala Dosa": "https://images.unsplash.com/photo-1630409346824-4f0e7b080087",
-    "Idli Sambar": "https://images.unsplash.com/photo-1626074353765-517a681e40be",
-    "Medu Vada": "https://images.unsplash.com/photo-1626074353735-5d8c0b3e0f3b",
-    "Filter Coffee": "https://images.unsplash.com/photo-1498804103079-a6351b050096",
-    "Pongal": "https://images.unsplash.com/photo-1630409346707-c8b0c3f4b4a1",
-
-    "Fried Chicken Bucket": "https://images.unsplash.com/photo-1562967916-eb82221dfb92",
-    "Zinger Burger": "https://images.unsplash.com/photo-1606755962773-d324e0a13086",
-    "Popcorn Chicken": "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec",
-    "Fries": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877",
-    "Pepsi": "https://images.unsplash.com/photo-1586201375761-83865001e31c",
-
-    "Greek Salad": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c",
-    "Caesar Salad": "https://images.unsplash.com/photo-1551248429-40975aa4de74",
-    "Fresh Orange Juice": "https://images.unsplash.com/photo-1600271886742-f049cd451bba",
-    "Avocado Toast": "https://images.unsplash.com/photo-1588137378633-dea1336ce1e2",
-    "Fruit Bowl": "https://images.unsplash.com/photo-1505252585461-04db1eb84625",
-
-    "Cappuccino": "https://images.unsplash.com/photo-1511920170033-f8396924c348",
-    "Iced Latte": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735",
-    "Blueberry Muffin": "https://images.unsplash.com/photo-1604908554165-7c6c0f8a1e58",
-    "Croissant": "https://images.unsplash.com/photo-1509440159596-0249088772ff",
-    "Brownie": "https://images.unsplash.com/photo-1599599810069-b541999978c4",
-
-    "Spaghetti Bolognese": "https://images.unsplash.com/photo-1551183053-bf91a1d81141",
-    "Penne Arrabbiata": "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9",
-    "Tiramisu": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9",
-    "Pizza Romana": "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e",
-    "Italian Garlic Bread": "https://images.unsplash.com/photo-1573140247632-f8fd74997d5c",
-
-    "Crunchy Taco": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-    "Bean Burrito": "https://images.unsplash.com/photo-1600891964599-f61ba0e24092",
-    "Nachos": "https://images.unsplash.com/photo-1513456852971-30c0b8199d4d",
-    "Quesadilla": "https://images.unsplash.com/photo-1617196038435-68b2b5d9f1d3",
-    "Churros": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f",
-
-    "Chicken Shawarma": "https://images.unsplash.com/photo-1561651823-34feb02250e4",
-    "Falafel": "https://images.unsplash.com/photo-1598515213692-5f1e1f6a5c8d",
-    "Hummus with Pita": "https://images.unsplash.com/photo-1604909053197-7b63f1f6e9f0",
-    "Mutton Kebab": "https://images.unsplash.com/photo-1544025162-d76694265947",
-    "Baklava": "https://images.unsplash.com/photo-1600891964092-4316c288032e"
-}
-
 
 def seed_data():
     print("Clearing old data...")
@@ -113,73 +37,185 @@ def seed_data():
     print("Creating Restaurants & Menu Items...")
 
     restaurants_data = [
-        ("Domino's Pizza","Pizza",["Margherita Pizza","Pepperoni Pizza","Garlic Bread","Choco Lava Cake","Diet Coke"]),
-        ("Burger King","Burger",["Whopper Burger","Veggie Burger","French Fries","Chicken Nuggets","Chocolate Shake"]),
-        ("Indian Dhaba","North Indian",["Butter Chicken","Paneer Tikka Masala","Garlic Naan","Samosa","Gulab Jamun"]),
-        ("Mainland China","Chinese",["Kung Pao Chicken","Spring Rolls","Fried Rice","Sweet and Sour Pork","Wonton Soup"]),
-        ("Corner House","Desserts",["Death by Chocolate","Vanilla Sundae","Strawberry Ice Cream","Cheesecake","Coffee"]),
-        ("Saravana Bhavan","South Indian",["Masala Dosa","Idli Sambar","Medu Vada","Filter Coffee","Pongal"]),
-        ("KFC","Fast Food",["Fried Chicken Bucket","Zinger Burger","Popcorn Chicken","Fries","Pepsi"]),
-        ("Fresh Salad Co","Italian",["Greek Salad","Caesar Salad","Fresh Orange Juice","Avocado Toast","Fruit Bowl"]),
-        ("Starbucks","Beverages",["Cappuccino","Iced Latte","Blueberry Muffin","Croissant","Brownie"]),
-        ("Little Italy","Italian",["Spaghetti Bolognese","Penne Arrabbiata","Tiramisu","Italian Garlic Bread","Pizza Romana"]),
-        ("Taco Bell","Mexican",["Crunchy Taco","Bean Burrito","Nachos","Quesadilla","Churros"]),
-        ("Al Amanah","Middle Eastern",["Chicken Shawarma","Falafel","Hummus with Pita","Mutton Kebab","Baklava"]),
+        # Bangalore
+        {"name": "Domino's Pizza", "city": "Bangalore", "tag": "Pizza"},
+        {"name": "KFC", "city": "Bangalore", "tag": "Fast Food"},
+        {"name": "Burger King", "city": "Bangalore", "tag": "Burger"},
+        {"name": "Pizza Hut", "city": "Bangalore", "tag": "Pizza"},
+        {"name": "Empire Restaurant", "city": "Bangalore", "tag": "North Indian"},
+        {"name": "Meghana Foods", "city": "Bangalore", "tag": "South Indian"},
+        {"name": "Truffles", "city": "Bangalore", "tag": "Burger"},
+        {"name": "Starbucks", "city": "Bangalore", "tag": "Beverages"},
+        {"name": "Subway", "city": "Bangalore", "tag": "Fast Food"},
+        {"name": "California Burrito", "city": "Bangalore", "tag": "Mexican"},
+        {"name": "McDonald's", "city": "Bangalore", "tag": "Burger"},
+        {"name": "Beijing Bites", "city": "Bangalore", "tag": "Chinese"},
+        {"name": "Leon Grill", "city": "Bangalore", "tag": "Fast Food"},
+        {"name": "A2B", "city": "Bangalore", "tag": "South Indian"},
+        {"name": "Corner House", "city": "Bangalore", "tag": "Desserts"},
+
+        # Mumbai
+        {"name": "Bademiya", "city": "Mumbai", "tag": "North Indian"},
+        {"name": "Leopold Cafe", "city": "Mumbai", "tag": "Fast Food"},
+        {"name": "Burger King", "city": "Mumbai", "tag": "Burger"},
+        {"name": "KFC", "city": "Mumbai", "tag": "Fast Food"},
+        {"name": "Pizza Hut", "city": "Mumbai", "tag": "Pizza"},
+        {"name": "Starbucks", "city": "Mumbai", "tag": "Beverages"},
+        {"name": "Subway", "city": "Mumbai", "tag": "Fast Food"},
+        {"name": "Mainland China", "city": "Mumbai", "tag": "Chinese"},
+        {"name": "Barbeque Nation", "city": "Mumbai", "tag": "North Indian"},
+
+        # Delhi
+        {"name": "Haldiram's", "city": "Delhi", "tag": "North Indian"},
+        {"name": "Bikanervala", "city": "Delhi", "tag": "North Indian"},
+        {"name": "Domino's", "city": "Delhi", "tag": "Pizza"},
+        {"name": "KFC", "city": "Delhi", "tag": "Fast Food"},
+        {"name": "Wow Momo", "city": "Delhi", "tag": "Chinese"},
+        {"name": "Burger King", "city": "Delhi", "tag": "Burger"},
+        {"name": "Starbucks", "city": "Delhi", "tag": "Beverages"},
+        {"name": "Sagar Ratna", "city": "Delhi", "tag": "South Indian"},
+        {"name": "Barbeque Nation", "city": "Delhi", "tag": "North Indian"},
     ]
 
-    rest_urls = [
-        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5",
-        "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c",
-        "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
-        "https://images.unsplash.com/photo-1514933651103-005eec06c04b",
-        "https://images.unsplash.com/photo-1466978913421-bac2e104d3c8",
-        "https://images.unsplash.com/photo-1498654896293-37aacf113fd9",
-        "https://images.unsplash.com/photo-1552566626-52f8b828add9",
-        "https://images.unsplash.com/photo-1544148103-0773bf10d330",
-        "https://images.unsplash.com/photo-1554118811-1e0d58224f24",
-        "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae",
-        "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
-        "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f"
+    rest_images = [
+        "https://images.unsplash.com/photo-1504674900247-0877df9cc836", # Plate of food
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c", # Healthy food bowl
+        "https://images.unsplash.com/photo-1493770348161-369560ae357d", # Cooking food
+        "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327", # Food dish
+        "https://images.unsplash.com/photo-1414235077428-33898dd1448c", # Gourmet plate
+        "https://images.unsplash.com/photo-1555939594-58d7cb561ad1", # BBQ food
+        "https://images.unsplash.com/photo-1482049016688-2d3e1b311543", # Sandwich plate
+        "https://images.unsplash.com/photo-1484723091792-c1fb5da03189", # Pizza flatlay
+        "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38", # Pizza and pasta
+        "https://images.unsplash.com/photo-1565958011703-44f9829ba187"  # Cake slice
     ]
 
-    for i, (rname, tag, items) in enumerate(restaurants_data):
-        print(f"Creating restaurant {i+1}: {rname}")
+    food_items = {
+        "Pizza": [
+            {"name": "Margherita Pizza", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pizza_Margherita.jpg?width=500"},
+            {"name": "Pepperoni Pizza", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Pepperoni_pizza.jpg?width=500"},
+            {"name": "Farmhouse Pizza", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Vegetarian_pizza.jpg?width=500"},
+            {"name": "Cheese Burst Pizza", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cheese_pizza.jpg?width=500"},
+            {"name": "BBQ Chicken Pizza", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/BBQ_chicken_pizza.jpg?width=500"}
+        ],
+        "Burger": [
+            {"name": "Whopper Burger", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Whopper.jpg?width=500"},
+            {"name": "Chicken Burger", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Chicken_sandwich.jpg?width=500"},
+            {"name": "Veggie Burger", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Veggie_burger.jpg?width=500"},
+            {"name": "Cheese Burger", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cheeseburger.jpg?width=500"},
+            {"name": "Double Patty Burger", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Double_cheeseburger.jpg?width=500"}
+        ],
+        "North Indian": [
+            {"name": "Butter Chicken", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Butter_chicken.jpg?width=500"},
+            {"name": "Paneer Tikka Masala", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Paneer_tikka_masala.jpg?width=500"},
+            {"name": "Dal Makhani", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Dal_Makhani.jpg?width=500"},
+            {"name": "Garlic Naan", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Garlic_naan.jpg?width=500"},
+            {"name": "Tandoori Roti", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tandoori_roti.jpg?width=500"}
+        ],
+        "Chinese": [
+            {"name": "Hakka Noodles", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hakka_noodles.jpg?width=500"},
+            {"name": "Manchurian", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gobi_Manchurian.jpg?width=500"},
+            {"name": "Fried Rice", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fried_rice.jpg?width=500"},
+            {"name": "Chilli Chicken", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Chilli_chicken.jpg?width=500"},
+            {"name": "Spring Rolls", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Spring_rolls.jpg?width=500"}
+        ],
+        "Desserts": [
+            {"name": "Chocolate Cake", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Chocolate_cake.jpg?width=500"},
+            {"name": "Ice Cream Sundae", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Ice_cream_sundae.jpg?width=500"},
+            {"name": "Brownie", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Chocolate_brownie.jpg?width=500"},
+            {"name": "Cheesecake", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Cheesecake.jpg?width=500"},
+            {"name": "Gulab Jamun", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Gulab_jamun.jpg?width=500"}
+        ],
+        "South Indian": [
+            {"name": "Masala Dosa", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Masala_dosa.jpg?width=500"},
+            {"name": "Idli Sambar", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Idli_sambar.jpg?width=500"},
+            {"name": "Medu Vada", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Medu_vada.jpg?width=500"},
+            {"name": "Uttapam", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Uttapam.jpg?width=500"},
+            {"name": "Filter Coffee", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Indian_filter_coffee.jpg?width=500"}
+        ],
+        "Fast Food": [
+            {"name": "French Fries", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/French_fries.jpg?width=500"},
+            {"name": "Chicken Wings", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Buffalo_wings.jpg?width=500"},
+            {"name": "Garlic Bread", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Garlic_bread.jpg?width=500"},
+            {"name": "Popcorn Chicken", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Popcorn_chicken.jpg?width=500"},
+            {"name": "Nachos", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Nachos.jpg?width=500"}
+        ],
+        "Beverages": [
+            {"name": "Cold Coffee", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Iced_coffee.jpg?width=500"},
+            {"name": "Iced Tea", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Iced_tea.jpg?width=500"},
+            {"name": "Mango Shake", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Mango_shake.jpg?width=500"},
+            {"name": "Coca Cola", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Coca-Cola.jpg?width=500"},
+            {"name": "Fresh Lime Soda", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Limeade.jpg?width=500"}
+        ],
+        "Italian": [
+            {"name": "Pasta Alfredo", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fettuccine_Alfredo.jpg?width=500"},
+            {"name": "Spaghetti Bolognese", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Spaghetti_Bolognese.jpg?width=500"},
+            {"name": "Lasagna", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Lasagne.jpg?width=500"},
+            {"name": "Risotto", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Risotto.jpg?width=500"},
+            {"name": "Tiramisu", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tiramisu.jpg?width=500"}
+        ],
+        "Mexican": [
+            {"name": "Tacos", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Tacos.jpg?width=500"},
+            {"name": "Burrito Bowl", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Burrito_bowl.jpg?width=500"},
+            {"name": "Quesadilla", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Quesadilla.jpg?width=500"},
+            {"name": "Fajitas", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Fajitas.jpg?width=500"},
+            {"name": "Churros", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Churros.jpg?width=500"}
+        ],
+        "Middle Eastern": [
+            {"name": "Chicken Shawarma", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Shawarma.jpg?width=500"},
+            {"name": "Falafel Wrap", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Falafel.jpg?width=500"},
+            {"name": "Hummus Pita", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Hummus.jpg?width=500"},
+            {"name": "Mutton Kebab", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Seekh_kebab.jpg?width=500"},
+            {"name": "Baklava", "image": "https://commons.wikimedia.org/wiki/Special:FilePath/Baklava.jpg?width=500"}
+        ]
+    }
 
+    for i, data in enumerate(restaurants_data):
+        print(f"Creating restaurant: {data['name']} in {data['city']}")
         r = Restaurant.objects.create(
-            name=rname,
-            description="Delicious food",
-            address="123 Food Street",
-            phone_number="1800-000-0000",
-            rating=4.5,
-            delivery_time="30-40 min",
-            min_order=150,
-            cost_for_two=400,
-            tags=tag,
-            image_url=rest_urls[i] + "?q=80&w=500",
-            is_open=True
+            name=data['name'],
+            description=f"Best {data['tag']} in {data['city']}",
+            address=f"Main Street, {data['city']}",
+            phone_number="1800-111-2222",
+            rating=round(random.uniform(3.5, 5.0), 1),
+            delivery_time=f"{random.randint(15, 45)} min",
+            min_order=random.choice([99, 149, 199]),
+            cost_for_two=random.choice([300, 400, 500, 800]),
+            tags=data['tag'],
+            image_url=rest_images[i % len(rest_images)] + "?q=80&w=500",
+            is_open=True,
+            city=data['city']
         )
 
-        for item in items:
+        items_for_tag = food_items.get(data['tag'], food_items["Fast Food"])
+        for item_data in items_for_tag:
+            is_veg = random.choice([True, False])
+            # Force desserts and beverages to be veg mostly
+            if data['tag'] in ['Desserts', 'Beverages', 'South Indian']:
+                is_veg = True
+                
             MenuItem.objects.create(
                 restaurant=r,
-                name=item,
-                description=f"Delicious {item}",
-                price=100,
-                is_veg=True,
-                category=cats[tag],
-                image_url=IMAGE_MAP[item]
+                name=item_data["name"],
+                description=f"Delicious {item_data['name']}",
+                price=random.randint(99, 499),
+                is_veg=is_veg,
+                category=cats[data['tag']],
+                image_url=item_data["image"]
             )
 
     from django.contrib.auth import get_user_model
     User = get_user_model()
     
     print("Creating Users...")
-    User.objects.all().delete()
-    User.objects.create_superuser(username='admin', email='admin@cravebites.com', password='adminpassword')
-    User.objects.create_user(username='testuser', email='test@cravebites.com', password='password123')
-    print("Test users created: 'admin':'adminpassword' and 'testuser':'password123'")
+    User.objects.filter(username__in=['admin', 'testuser']).delete()
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser(username='admin', email='admin@cravebites.com', password='adminpassword')
+    if not User.objects.filter(username='testuser').exists():
+        User.objects.create_user(username='testuser', email='test@cravebites.com', password='password123')
+    print("Test users ensured: 'admin':'adminpassword' and 'testuser':'password123'")
 
-    print("🎉 FULL DATABASE SEEDED SUCCESSFULLY!")
+    print("FULL DATABASE SEEDED SUCCESSFULLY!")
 
 
 if __name__ == "__main__":

@@ -5,16 +5,21 @@ import AuthContext from '../context/AuthContext';
 function Login() {
     const { loginUser, registerUser } = useContext(AuthContext);
     const [isLogin, setIsLogin] = useState(true);
-    const [username, setUsername] = useState('');
+    const [loginIdentifier, setLoginIdentifier] = useState('');
+    const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (isLogin) {
-            loginUser(username, password);
+            loginUser(loginIdentifier, password);
         } else {
-            registerUser(username, email, password);
+            const generatedUsername = email.split('@')[0] + Math.floor(Math.random() * 10000);
+            const nameParts = fullName.trim().split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            registerUser(generatedUsername, email, password, firstName, lastName);
         }
     };
 
@@ -31,17 +36,31 @@ function Login() {
                 </div>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div style={{ position: 'relative' }}>
-                        <UserIcon size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-                        <input 
-                            type="text" 
-                            placeholder="Username" 
-                            required 
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            style={{ width: '100%', padding: '16px 16px 16px 48px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', fontSize: '16px', background: '#FAFAFA' }}
-                        />
-                    </div>
+                    {isLogin ? (
+                        <div style={{ position: 'relative' }}>
+                            <UserIcon size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+                            <input 
+                                type="text" 
+                                placeholder="Email or Username" 
+                                required 
+                                value={loginIdentifier}
+                                onChange={(e) => setLoginIdentifier(e.target.value)}
+                                style={{ width: '100%', padding: '16px 16px 16px 48px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', fontSize: '16px', background: '#FAFAFA' }}
+                            />
+                        </div>
+                    ) : (
+                        <div style={{ position: 'relative' }}>
+                            <UserIcon size={20} color="var(--text-muted)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+                            <input 
+                                type="text" 
+                                placeholder="Full Name" 
+                                required 
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                style={{ width: '100%', padding: '16px 16px 16px 48px', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', fontSize: '16px', background: '#FAFAFA' }}
+                            />
+                        </div>
+                    )}
 
                     {!isLogin && (
                         <div style={{ position: 'relative' }}>

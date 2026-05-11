@@ -1,15 +1,18 @@
 import { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { api } from './services/api';
-import { ShoppingBag, Search, Plus, Minus, X, User, LogOut, Package } from 'lucide-react';
+import { ShoppingBag, Search, Plus, Minus, X, User, LogOut, Package, MapPin, ChevronDown, Crosshair } from 'lucide-react';
 import AuthContext, { AuthProvider } from './context/AuthContext';
+import LocationContext, { LocationProvider } from './context/LocationContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Landing from './pages/Landing';
 import Payment from './pages/Payment';
 import Orders from './pages/Orders';
+import Profile from './pages/Profile';
 import { useCart } from './hooks/useCart';
 import { Toaster } from 'react-hot-toast';
+import ProfileDropdown from './components/ProfileDropdown';
 import './App.css';
 
 
@@ -29,6 +32,10 @@ function MainApp() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { cart, cartTotal, addToCart, updateQuantity, fetchCart } = useCart(user);
+  const { userLocation, setUserLocation } = useContext(LocationContext);
+  
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationInput, setLocationInput] = useState('');
   
   const navigate = useNavigate();
 
@@ -56,9 +63,11 @@ function MainApp() {
     if (!user) return;
     const fetchData = async () => {
       try {
+        setIsLoadingData(true);
         const timestamp = new Date().getTime();
+        const cityQuery = userLocation ? `&city=${encodeURIComponent(userLocation)}` : '';
         const [resRes, catRes] = await Promise.all([
-          api.get(`/restaurants/?t=${timestamp}`),
+          api.get(`/restaurants/?t=${timestamp}${cityQuery}`),
           api.get(`/categories/?t=${timestamp}`)
         ]);
         setRestaurants(resRes.data.results);
@@ -70,7 +79,7 @@ function MainApp() {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, userLocation]);
 
   // Sync cart emptying from Payment
   useEffect(() => {
@@ -89,6 +98,37 @@ function MainApp() {
       // When navigating away, clear cart in App.jsx AFTER successful payment (Handled locally in actual prod by Redux, here we just listen to event)
   };
 
+  const handleUseCurrentLocation = () => {
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                  const lat = position.coords.latitude;
+                  const lon = position.coords.longitude;
+                  try {
+                      const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+                      const data = await res.json();
+                      const city = data.city || data.locality || "Bangalore";
+                      setUserLocation(city);
+                      setIsLocationModalOpen(false);
+                  } catch (err) {
+                      console.error("Geocoding failed", err);
+                      toast.error("Failed to detect location.");
+                  }
+              },
+              () => toast.error("Location permission denied.")
+          );
+      }
+  };
+
+  const handleManualLocationSubmit = (e) => {
+      e.preventDefault();
+      if (locationInput.trim()) {
+          setUserLocation(locationInput.trim());
+          setIsLocationModalOpen(false);
+          setLocationInput('');
+      }
+  };
+
   return (
     <div className="app-container">
       {/* Navbar Shared Across Pages */}
@@ -103,19 +143,56 @@ function MainApp() {
             </svg>
             <span style={{ color: "var(--primary)", fontWeight: "800", fontSize: '24px', letterSpacing: '-0.5px' }}>CraveBites</span>
           </Link>
+
+          {user && (
+            <div style={{ position: 'relative' }}>
+                <button 
+                    onClick={() => setIsLocationModalOpen(!isLocationModalOpen)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit', padding: '8px 12px', borderRadius: '8px' }}
+                    onMouseEnter={e => e.currentTarget.style.background = '#f5f5f5'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                    <MapPin size={20} color="var(--primary)" />
+                    <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', borderBottom: '2px solid var(--text-main)', paddingBottom: '2px' }}>
+                        {userLocation || 'Select Location'}
+                    </span>
+                    <ChevronDown size={16} color="var(--text-main)" style={{ transform: isLocationModalOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s ease' }} />
+                </button>
+
+                {isLocationModalOpen && (
+                    <>
+                        <div onClick={() => setIsLocationModalOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 900 }}></div>
+                        <div style={{ position: 'absolute', top: '100%', left: 0, background: 'white', width: '320px', padding: '24px', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', zIndex: 1000, marginTop: '8px', border: '1px solid var(--border)' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '16px' }}>Change Location</h3>
+                            <button onClick={handleUseCurrentLocation} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', background: 'var(--primary-light)', border: '1px solid var(--primary)', borderRadius: '8px', color: 'var(--primary)', fontWeight: '600', cursor: 'pointer', marginBottom: '16px' }}>
+                                <Crosshair size={20} /> Use Current Location
+                            </button>
+                            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px', marginBottom: '16px', fontWeight: '600' }}>OR</div>
+                            <form onSubmit={handleManualLocationSubmit}>
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter your city..." 
+                                    value={locationInput}
+                                    onChange={(e) => setLocationInput(e.target.value)}
+                                    style={{ width: '100%', padding: '14px 16px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '15px', background: '#FAFAFA' }}
+                                />
+                            </form>
+                        </div>
+                    </>
+                )}
+            </div>
+          )}
           
           <div className="nav-links">
             {user ? (
                 <>
                     <Link to="/home" className="nav-item">Offers</Link>
                     <Link to="/orders" className="nav-item" style={{display: 'flex', alignItems: 'center', gap: '6px'}}><Package size={18}/> Orders</Link>
-                    <button onClick={logoutUser} className="nav-item" style={{display: 'flex', alignItems: 'center', gap: '6px', border: 'none', background: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '16px'}}>
-                        <LogOut size={18} /> Logout
-                    </button>
-                    <button className="btn-primary" onClick={() => setIsCartOpen(true)}>
+                    <button className="btn-primary" onClick={() => setIsCartOpen(true)} style={{ marginRight: '16px' }}>
                       <ShoppingBag size={20} />
                       <span>{cart.length > 0 ? Object.values(cart).reduce((a,b)=>a+b.quantity,0) : 'Cart'}</span>
                     </button>
+                    <ProfileDropdown />
                 </>
             ) : (
                 <Link to="/login" className="btn-primary">Sign In</Link>
@@ -132,6 +209,8 @@ function MainApp() {
           <Route path="/home" element={<PrivateRoute><Home categories={categories} restaurants={restaurants} addToCart={addToCart} cart={cart} updateQuantity={updateQuantity} isLoadingData={isLoadingData} /></PrivateRoute>} />
           <Route path="/payment" element={<PrivateRoute><Payment /></PrivateRoute>} />
           <Route path="/orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
 
@@ -211,10 +290,12 @@ function MainApp() {
 function App() {
     return (
         <Router>
-            <AuthProvider>
-                <Toaster position="bottom-right" toastOptions={{ duration: 3000 }} />
-                <MainApp />
-            </AuthProvider>
+            <LocationProvider>
+                <AuthProvider>
+                    <Toaster position="bottom-right" toastOptions={{ duration: 3000 }} />
+                    <MainApp />
+                </AuthProvider>
+            </LocationProvider>
         </Router>
     );
 }

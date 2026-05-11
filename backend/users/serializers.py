@@ -20,7 +20,7 @@ class AddressSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Address
-        fields = ['id', 'label', 'street', 'city', 'state', 'pincode', 'latitude', 'longitude', 'is_default', 'created_at']
+        fields = ['id', 'label', 'house_no', 'street', 'landmark', 'city', 'state', 'pincode', 'phone_number', 'latitude', 'longitude', 'is_default', 'created_at']
         read_only_fields = ['id', 'created_at']
     
     def validate_pincode(self, value):

@@ -66,10 +66,13 @@ class Address(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='addresses')
     label = models.CharField(max_length=20, choices=ADDRESS_TYPES, default='home')
+    house_no = models.CharField(max_length=100, blank=True, null=True)
     street = models.CharField(max_length=255)
+    landmark = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     pincode = models.CharField(max_length=10)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     is_default = models.BooleanField(default=False)

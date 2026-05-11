@@ -13,6 +13,7 @@ class Order(models.Model):
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     user_name = models.CharField(max_length=150)
+    user_phone = models.CharField(max_length=15, blank=True, null=True)
     user_address = models.TextField()
     total_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')

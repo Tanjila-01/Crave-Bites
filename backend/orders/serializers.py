@@ -33,7 +33,7 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'user', 'user_details', 'user_name', 'user_address', 'total_amount',
+            'id', 'user', 'user_details', 'user_name', 'user_phone', 'user_address', 'total_amount',
             'status', 'is_paid', 'razorpay_order_id', 'razorpay_payment_id',
             'created_at', 'items'
         ]
@@ -51,7 +51,7 @@ class CreateOrderSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Order
-        fields = ['user_name', 'user_address', 'items_data']
+        fields = ['user_name', 'user_phone', 'user_address', 'items_data']
 
 
 class CartItemSerializer(serializers.ModelSerializer):

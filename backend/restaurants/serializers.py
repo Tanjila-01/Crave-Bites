@@ -43,7 +43,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'address', 'phone_number', 'rating',
             'delivery_time', 'min_order', 'cost_for_two', 'tags', 'image_url',
-            'is_open', 'menu_items', 'menu_items_count'
+            'is_open', 'city', 'menu_items', 'menu_items_count'
         ]
     
     def get_menu_items_count(self, obj):
@@ -60,7 +60,7 @@ class RestaurantDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'address', 'phone_number', 'rating',
             'delivery_time', 'min_order', 'cost_for_two', 'tags', 'image_url',
-            'is_open', 'menu_items', 'categories'
+            'is_open', 'city', 'menu_items', 'categories'
         ]
     
     def get_categories(self, obj):
@@ -76,6 +76,6 @@ class RestaurantListSerializer(serializers.ModelSerializer):
         model = Restaurant
         fields = [
             'id', 'name', 'description', 'rating', 'delivery_time',
-            'min_order', 'cost_for_two', 'tags', 'image_url', 'is_open',
+            'min_order', 'cost_for_two', 'tags', 'image_url', 'is_open', 'city',
             'menu_items'
         ]

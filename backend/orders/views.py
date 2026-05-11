@@ -42,6 +42,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     def place_order(self, request):
         """Create order from cart"""
         user_name = request.data.get('user_name', request.user.get_full_name() or request.user.username)
+        user_phone = request.data.get('user_phone', '')
         user_address = request.data.get('user_address')
         
         if not user_address:
@@ -84,6 +85,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 order = Order.objects.create(
                     user=request.user,
                     user_name=user_name,
+                    user_phone=user_phone,
                     user_address=user_address,
                     total_amount=total_amount
                 )

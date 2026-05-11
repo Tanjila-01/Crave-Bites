@@ -1,11 +1,60 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Clock, MapPin, Smartphone, ShieldCheck, Zap } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { toast } from 'react-hot-toast';
+import AuthContext from '../context/AuthContext';
+import LocationContext from '../context/LocationContext';
 
 function Landing() {
     const navigate = useNavigate();
     const [wordIndex, setWordIndex] = useState(0);
     const words = ["Hungry?", "Unexpected guests?", "Movie night?", "Late working?"];
+    const { user } = useContext(AuthContext);
+    const { setUserLocation } = useContext(LocationContext);
+    const [locationInput, setLocationInput] = useState("");
+    const [isDetecting, setIsDetecting] = useState(false);
+
+    const handleFindFood = () => {
+        if (locationInput) {
+            setUserLocation(locationInput);
+        }
+        if (user) {
+            navigate('/home');
+        } else {
+            navigate('/login');
+        }
+    };
+
+    const handleDetectLocation = () => {
+        setIsDetecting(true);
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    try {
+                        const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+                        const data = await response.json();
+                        const city = data.city || data.locality || "Bangalore";
+                        setLocationInput(city);
+                        toast.success("Location detected successfully");
+                    } catch (error) {
+                        toast.error("Failed to detect location, using default");
+                        setLocationInput("Bangalore");
+                    } finally {
+                        setIsDetecting(false);
+                    }
+                },
+                (error) => {
+                    toast.error("Geolocation denied, using default");
+                    setLocationInput("Bangalore");
+                    setIsDetecting(false);
+                }
+            );
+        } else {
+            toast.error("Geolocation not supported");
+            setIsDetecting(false);
+        }
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -34,9 +83,12 @@ function Landing() {
                             Get the best food from top restaurants delivered to your door in <span style={{ color: 'white', fontWeight: '700' }}>minutes.</span>
                         </h2>
                         
-                        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px', borderRadius: 'var(--radius-full)', display: 'flex', maxWidth: '500px', backdropFilter: 'blur(10px)' }}>
-                            <input type="text" placeholder="Enter your delivery location..." style={{ flex: 1, border: 'none', background: 'transparent', padding: '0 24px', fontSize: '18px', outline: 'none', color: 'white' }} />
-                            <button onClick={() => navigate('/login')} style={{ background: 'var(--primary)', color: 'white', padding: '20px 40px', borderRadius: 'var(--radius-full)', fontWeight: '800', border: 'none', cursor: 'pointer', fontSize: '18px', transition: 'transform 0.2s', ':hover': { transform: 'scale(1.05)' } }}>
+                        <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '8px', borderRadius: 'var(--radius-full)', display: 'flex', flexWrap: 'wrap', gap: '8px', maxWidth: '600px', backdropFilter: 'blur(10px)' }}>
+                            <input type="text" value={locationInput} onChange={(e) => setLocationInput(e.target.value)} placeholder="Enter your delivery location..." style={{ flex: 1, minWidth: '200px', border: 'none', background: 'transparent', padding: '0 24px', fontSize: '16px', outline: 'none', color: 'white' }} />
+                            <button onClick={handleDetectLocation} disabled={isDetecting} style={{ background: 'transparent', color: 'var(--primary)', padding: '16px 24px', borderRadius: 'var(--radius-full)', fontWeight: '700', border: '1px solid var(--primary)', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s' }}>
+                                {isDetecting ? "Detecting..." : "Use Current Location"}
+                            </button>
+                            <button onClick={handleFindFood} style={{ background: 'var(--primary)', color: 'white', padding: '16px 40px', borderRadius: 'var(--radius-full)', fontWeight: '800', border: 'none', cursor: 'pointer', fontSize: '16px', transition: 'transform 0.2s', ':hover': { transform: 'scale(1.05)' } }}>
                                 Find Food
                             </button>
                         </div>

@@ -27,13 +27,15 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const registerUser = async (username, email, password) => {
+    const registerUser = async (username, email, password, first_name = '', last_name = '') => {
         try {
             const response = await api.post('/auth/register/', { 
                 username, 
                 email, 
                 password,
-                confirm_password: password 
+                confirm_password: password,
+                first_name,
+                last_name
             });
             setUser(response.data.user);
             setAuthTokens(true);
