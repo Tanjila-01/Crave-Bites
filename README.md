@@ -132,17 +132,7 @@ The application will be typically available at `http://localhost:5173/` or `http
 
 ---
 
-## 📸 Screenshots Placeholder
 
-*(Replace these placeholders with actual project screenshots)*
-
-- `[Placeholder: Homepage & Hero Section]`
-- `[Placeholder: Restaurant Search & Filters]`
-- `[Placeholder: Dynamic Cart Sidebar]`
-- `[Placeholder: Professional Checkout & Address Modal]`
-- `[Placeholder: Order History & Tracking UI]`
-
----
 
 ## 📎 Future Improvements
 
